@@ -114,7 +114,7 @@ Preview of the downloaded MP3 file being played.
 ```
 youtube-converter/
 ├── downloads/           # Downloaded files
-├── app.py               # Flask backend
-├── index.html           # Web interface
+├── flask_api.py               # Flask backend
+├── youtube_downloader.html    # Web interface
 └── README.md            # This file
 ```
