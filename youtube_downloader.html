@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Convertidor YouTube a MP3/MP4</title>
+  <style>
+    :root {
+      --color-bg: #f2f2f2;
+      --color-card: #ffffff;
+      --color-primary: #ff3b3f;
+      --color-primary-hover: #e03131;
+      --color-text: #1e1e1e;
+      --color-accent: #28a745;
+      --color-error: #dc3545;
+      --border-radius: 4px;
+      --transition: 0.25s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2em;
+    }
+
+    .container {
+      background-color: var(--color-card);
+      padding: 2.5em;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      border-radius: var(--border-radius);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.6em;
+      margin-bottom: 0.5em;
+      color: var(--color-primary);
+    }
+
+    p.subtitle {
+      font-size: 1em;
+      margin-bottom: 1.5em;
+      color: #555;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.9em;
+      margin-bottom: 1em;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: var(--border-radius);
+      background-color: #fafafa;
+      transition: border-color var(--transition);
+    }
+
+    input:focus, select:focus {
+      border-color: var(--color-primary);
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 1em;
+      font-size: 1.1em;
+      font-weight: bold;
+      background-color: var(--color-primary);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color var(--transition), transform var(--transition);
+    }
+
+    button:hover {
+      background-color: var(--color-primary-hover);
+      transform: scale(1.02);
+    }
+
+    #status {
+      margin-top: 1.5em;
+      font-weight: 500;
+      color: var(--color-error);
+    }
+
+    a {
+      color: var(--color-accent);
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Oculta el selector de calidad si no es video */
+    #quality {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Convertidor YouTube a MP3/MP4</h1>
+    <p class="subtitle">Transforma vídeos en audio o video en segundos</p>
+
+    <input type="text" id="url" placeholder="Pega el enlace aquí...">
+
+    <select id="format" onchange="toggleQuality()">
+      <option value="mp3">MP3 (solo audio)</option>
+      <option value="mp4">MP4 (video)</option>
+    </select>
+
+    <!-- para seleccionar calidad de video -->
+    <select id="quality">
+      <option value="best">Máxima calidad</option>
+      <option value="1080p">1080p</option>
+      <option value="720p">720p</option>
+      <option value="480p">480p</option>
+      <option value="240p">240p</option>
+    </select>
+
+    <!-- este es el boton para iniciar la descarga -->
+    <button onclick="download()">▶ Empezar</button>
+
+    <p id="status"></p>
+  </div>
+
+  <script>
+    // muestra o oculta el selector de calidad del video mp4
+    function toggleQuality() {
+      const format = document.getElementById('format').value;
+      const qualitySelect = document.getElementById('quality');
+      qualitySelect.style.display = format === 'mp4' ? 'block' : 'none';
+    }
+
+    toggleQuality(); // inicia la visibilidad al cargar 
+
+    // esto es la función para enviar datos al servidor y manejar la respuesta
+    async function download() {
+      const url = document.getElementById('url').value.trim();
+      const format = document.getElementById('format').value;
+      const quality = document.getElementById('quality').value;
+      const status = document.getElementById('status');
+
+      if (!url) {
+        status.innerText = 'Por favor ingresa una URL.';
+        return;
+      }
+
+      status.innerText = 'Descargando...';
+
+      try {
+        const res = await fetch('http://localhost:5000/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, format, quality })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          const fileLink = `http://localhost:5000/file/${data.filename}`;
+          status.innerHTML = `Descarga lista: <a href="${fileLink}" download>${data.filename}</a>`;
+          status.style.color = '#28a745'; 
+        } else {
+          status.innerText = 'Error: ' + data.error;
+        }
+      } catch (err) {
+        status.innerText = 'Error de conexión con el servidor.';
+      }
+    }
+  </script>
+</body>
+</html>
